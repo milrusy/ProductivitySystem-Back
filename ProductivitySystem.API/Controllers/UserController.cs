@@ -1,6 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ProductivitySystem.Application.DTOs;
 using ProductivitySystem.Application.Interfaces;
+using ProductivitySystem.Domain.Entities;
+using System.Security.Claims;
 
 namespace ProductivitySystem.API.Controllers;
 
@@ -9,11 +13,15 @@ namespace ProductivitySystem.API.Controllers;
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    private readonly IUserService _service;
+    private readonly IUserManagementService _service;
+    private readonly IUserAnalyticsService _analyticsService;
 
-    public UsersController(IUserService service)
+    public UsersController(
+    IUserManagementService service,
+    IUserAnalyticsService analyticsService)
     {
         _service = service;
+        _analyticsService = analyticsService;
     }
 
     [Authorize(Roles = "Admin")]
@@ -31,5 +39,49 @@ public class UsersController : ControllerBase
         if (user == null) return NotFound();
 
         return Ok(user);
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost]
+    public async Task<IActionResult> CreateUser(
+        CreateUserDto dto)
+    {
+        await _service.CreateUser(dto);
+
+        return Ok();
+    }
+
+    [HttpGet("{id}/analytics")]
+    public async Task<IActionResult> GetAnalytics(int id)
+    {
+        var result = await _analyticsService
+            .GetEmployeeDetails(id);
+
+        return Ok(result);
+    }
+
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword(
+        ChangePasswordDto dto)
+    {
+        var currentUserId = int.Parse(
+            User.FindFirst(ClaimTypes.NameIdentifier)!.Value
+        );
+
+        await _service.ChangePassword(
+            currentUserId,
+            dto);
+
+        return Ok();
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword(
+        ResetPasswordDto dto)
+    {
+        await _service.ResetPassword(dto);
+
+        return Ok();
     }
 }
