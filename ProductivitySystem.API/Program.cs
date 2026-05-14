@@ -1,12 +1,10 @@
+using Hangfire;
+using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ProductivitySystem.Application.Interfaces;
 using ProductivitySystem.Application.Services;
-using ProductivitySystem.Domain.Entities;
 using ProductivitySystem.Infrastructure.Data;
 using System.Text;
 
@@ -17,6 +15,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddHangfire(config =>
+    config.SetDataCompatibilityLevel(
+            CompatibilityLevel.Version_180)
+          .UseSimpleAssemblyNameTypeSerializer()
+          .UseRecommendedSerializerSettings()
+          .UseSqlServerStorage(
+              builder.Configuration
+                  .GetConnectionString("DefaultConnection")
+          ));
+
+builder.Services.AddHangfireServer();
+
 builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 builder.Services.AddScoped<IMetricsService, MetricsService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
@@ -24,6 +34,13 @@ builder.Services.AddScoped<IUserManagementService,
     UserManagementService>();
 builder.Services.AddScoped<IUserAnalyticsService,
     UserAnalyticsService>();
+builder.Services.AddScoped<IReportService,
+    ReportService>();
+builder.Services.AddScoped<
+    IMetricsCalculationService,
+    MetricsCalculationService>();
+builder.Services.AddScoped<IAlertService,
+    AlertService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -77,9 +94,33 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[]
+    {
+        new HangfireAuthorizationFilter()
+    }
+});
+
+RecurringJob.AddOrUpdate<IAlertService>(
+    "generate-alerts",
+
+    service => service.GenerateAlerts(),
+
+    Cron.Minutely
+);
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.MapControllers();
+
+RecurringJob.AddOrUpdate<IMetricsCalculationService>(
+    "calculate-metrics",
+
+    service => service.CalculateMetrics(),
+
+    Cron.Hourly
+);
 
 app.Run();

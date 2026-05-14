@@ -14,6 +14,7 @@ public class AppDbContext : DbContext
     public DbSet<ExternalTask> Tasks => Set<ExternalTask>();
     public DbSet<TimeLog> TimeLogs => Set<TimeLog>();
     public DbSet<Metric> Metrics => Set<Metric>();
+    public DbSet<Alert> Alerts => Set<Alert>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
