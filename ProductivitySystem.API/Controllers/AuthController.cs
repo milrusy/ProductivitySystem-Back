@@ -8,7 +8,6 @@ using ProductivitySystem.Infrastructure.Data;
 
 namespace ProductivitySystem.API.Controllers;
 
-[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
