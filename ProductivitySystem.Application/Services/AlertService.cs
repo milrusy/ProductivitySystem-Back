@@ -23,12 +23,12 @@ public class AlertService : IAlertService
 
         foreach (var metric in metrics)
         {
+            // HIGH
             if (metric.OverdueTasks >= 5)
             {
                 var exists = await _context.Alerts.AnyAsync(a =>
                     a.UserId == metric.UserId &&
-                    a.Message.Contains("overdue") &&
-                    !a.IsRead);
+                    a.Message.Contains("overdue"));
 
                 if (!exists)
                 {
@@ -37,9 +37,9 @@ public class AlertService : IAlertService
                         UserId = metric.UserId,
 
                         Message =
-                            $"{metric.User.Name} has too many overdue tasks",
+                            $"Too many overdue tasks detected",
 
-                        Severity = "High",
+                        Severity = "Critical",
 
                         CreatedAt = DateTime.UtcNow,
 
@@ -48,12 +48,12 @@ public class AlertService : IAlertService
                 }
             }
 
+            // MEDIUM
             if (metric.ProductivityScore < 20)
             {
                 var exists = await _context.Alerts.AnyAsync(a =>
                     a.UserId == metric.UserId &&
-                    a.Message.Contains("Productivity") &&
-                    !a.IsRead);
+                    a.Message.Contains("Productivity dropped"));
 
                 if (!exists)
                 {
@@ -64,7 +64,32 @@ public class AlertService : IAlertService
                         Message =
                             $"Productivity dropped below threshold",
 
-                        Severity = "Medium",
+                        Severity = "Warning",
+
+                        CreatedAt = DateTime.UtcNow,
+
+                        IsRead = false
+                    });
+                }
+            }
+
+            // INFO
+            if (metric.ProductivityScore >= 80)
+            {
+                var exists = await _context.Alerts.AnyAsync(a =>
+                    a.UserId == metric.UserId &&
+                    a.Message.Contains("Excellent productivity"));
+
+                if (!exists)
+                {
+                    _context.Alerts.Add(new Alert
+                    {
+                        UserId = metric.UserId,
+
+                        Message =
+                            $"Excellent productivity performance achieved",
+
+                        Severity = "Info",
 
                         CreatedAt = DateTime.UtcNow,
 
@@ -97,5 +122,37 @@ public class AlertService : IAlertService
                 CreatedAt = a.CreatedAt
             })
             .ToListAsync();
+    }
+
+
+    public async Task<List<AlertDto>> GetUnread()
+    {
+        return await _context.Alerts
+            .Include(a => a.User)
+            .Where(a => !a.IsRead)
+            .OrderByDescending(a => a.CreatedAt)
+            .Select(a => new AlertDto
+            {
+                Id = a.Id,
+                Message = a.Message,
+                Severity = a.Severity,
+                EmployeeName = a.User!.Name,
+                CreatedAt = a.CreatedAt,
+                IsRead = a.IsRead
+            })
+            .ToListAsync();
+    }
+
+    public async Task MarkAsRead(int id)
+    {
+        var alert = await _context.Alerts
+            .FirstOrDefaultAsync(a => a.Id == id);
+
+        if (alert == null)
+            return;
+
+        alert.IsRead = true;
+
+        await _context.SaveChangesAsync();
     }
 }

@@ -18,5 +18,6 @@ public class User
 
     public Department Department { get; set; }
 
-    public ICollection<ExternalTask> Tasks { get; set; }
+    public ICollection<ExternalTask> Tasks { get; set; } = new List<ExternalTask>();
+    public ICollection<Metric> Metrics { get; set; } = new List<Metric>();
 }

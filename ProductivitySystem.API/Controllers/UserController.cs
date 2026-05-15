@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using ProductivitySystem.Application.DTOs;
 using ProductivitySystem.Application.Interfaces;
-using ProductivitySystem.Domain.Entities;
 using System.Security.Claims;
 
 namespace ProductivitySystem.API.Controllers;

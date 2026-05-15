@@ -279,7 +279,7 @@ namespace ProductivitySystem.Infrastructure.Migrations
             modelBuilder.Entity("ProductivitySystem.Domain.Entities.Metric", b =>
                 {
                     b.HasOne("ProductivitySystem.Domain.Entities.User", "User")
-                        .WithMany()
+                        .WithMany("Metrics")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -329,6 +329,8 @@ namespace ProductivitySystem.Infrastructure.Migrations
 
             modelBuilder.Entity("ProductivitySystem.Domain.Entities.User", b =>
                 {
+                    b.Navigation("Metrics");
+
                     b.Navigation("Tasks");
                 });
 #pragma warning restore 612, 618

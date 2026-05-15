@@ -12,7 +12,7 @@ public class Alert
 
     public string Severity { get; set; }
 
-    public bool IsRead { get; set; }
+    public bool IsRead { get; set; } = false;
 
     public DateTime CreatedAt { get; set; }
 }

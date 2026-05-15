@@ -34,4 +34,28 @@ public class MetricsController : ControllerBase
         var result = await _service.GetTrends(userId, departmentId);
         return Ok(result);
     }
+
+    [HttpGet("departments")]
+    public async Task<IActionResult>
+        GetDepartmentAnalytics()
+    {
+        return Ok(
+            await _service
+                .GetDepartmentAnalytics(null));
+    }
+
+    [HttpGet("departments/{departmentId}")]
+    public async Task<IActionResult>
+        GetDepartmentAnalytics(int? departmentId)
+    {
+        return Ok(
+            await _service
+                .GetDepartmentAnalytics(departmentId));
+    }
+
+    [HttpGet("employees")]
+    public async Task<IActionResult> GetEmployeesPerformance()
+    {
+        return Ok(await _service.GetEmployeePerformance());
+    }
 }

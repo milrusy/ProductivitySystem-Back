@@ -99,4 +99,65 @@ public class MetricsService : IMetricsService
 
         return grouped;
     }
+
+    public async Task<List<DepartmentAnalyticsDto>>
+        GetDepartmentAnalytics(int? departmentId)
+    {
+        var departments = await _context.Departments
+            .Include(d => d.Users)
+            .ThenInclude(u => u.Metrics)
+            .ToListAsync();
+
+        if (departmentId is not null)
+        {
+            departments = departments.Where(d => d.Id == departmentId).ToList();
+        }
+
+        return departments.Select(d =>
+        {
+            var metrics = d.Users
+                .SelectMany(u => u.Metrics)
+                .ToList();
+
+            return new DepartmentAnalyticsDto
+            {
+                DepartmentName = d.Name,
+
+                EmployeesCount = d.Users.Count,
+
+                CompletedTasks =
+                    metrics.Sum(m => m.CompletedTasks),
+
+                OverdueTasks =
+                    metrics.Sum(m => m.OverdueTasks),
+
+                AverageProductivity =
+                    metrics.Any()
+                    ? metrics.Average(m =>
+                        m.ProductivityScore)
+                    : 0
+            };
+        }).ToList();
+    }
+
+    public async Task<List<EmployeePerformanceDto>> GetEmployeePerformance()
+    {
+        var metrics = await _context.Metrics
+            .Include(m => m.User)
+            .ThenInclude(u => u.Department)
+            .ToListAsync();
+
+        return metrics
+            .Select(m => new EmployeePerformanceDto
+            {
+                UserId = m.UserId,
+                Department = m.User.Department.Name,
+                Name = m.User.Name,
+                CompletedTasks = m.CompletedTasks,
+                OverdueTasks = m.OverdueTasks,
+                ProductivityScore = m.ProductivityScore
+            })
+            .OrderByDescending(x => x.ProductivityScore)
+            .ToList();
+    }
 }

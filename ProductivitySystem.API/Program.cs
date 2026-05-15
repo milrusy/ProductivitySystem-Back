@@ -41,6 +41,8 @@ builder.Services.AddScoped<
     MetricsCalculationService>();
 builder.Services.AddScoped<IAlertService,
     AlertService>();
+builder.Services.AddScoped<IAlertService, AlertService>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

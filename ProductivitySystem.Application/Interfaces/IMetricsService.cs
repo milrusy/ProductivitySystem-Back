@@ -6,4 +6,6 @@ public interface IMetricsService
 {
     Task<MetricsDto> GetUserMetrics(int userId, DateTime? from, DateTime? to);
     Task<List<TrendDto>> GetTrends(int? userId, int? departmentId);
+    Task<List<DepartmentAnalyticsDto>> GetDepartmentAnalytics(int? departmentId);
+    Task<List<EmployeePerformanceDto>> GetEmployeePerformance();
 }

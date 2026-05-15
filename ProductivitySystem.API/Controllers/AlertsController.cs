@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ProductivitySystem.Application.DTOs;
 using ProductivitySystem.Application.Interfaces;
+using ProductivitySystem.Application.Services;
 
 namespace ProductivitySystem.API.Controllers;
 
@@ -28,5 +31,20 @@ public class AlertsController : ControllerBase
         await _service.GenerateAlerts();
 
         return Ok();
+    }
+
+
+    [HttpGet("unread")]
+    public async Task<IActionResult> GetUnread()
+    {
+        return Ok(await _service.GetUnread());
+    }
+
+    [HttpPut("{id}/read")]
+    public async Task<IActionResult> MarkAsRead(int id)
+    {
+        await _service.MarkAsRead(id);
+
+        return NoContent();
     }
 }
