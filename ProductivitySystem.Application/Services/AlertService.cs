@@ -23,7 +23,6 @@ public class AlertService : IAlertService
 
         foreach (var metric in metrics)
         {
-            // HIGH
             if (metric.OverdueTasks >= 5)
             {
                 var exists = await _context.Alerts.AnyAsync(a =>
@@ -48,7 +47,6 @@ public class AlertService : IAlertService
                 }
             }
 
-            // MEDIUM
             if (metric.ProductivityScore < 20)
             {
                 var exists = await _context.Alerts.AnyAsync(a =>
@@ -73,7 +71,6 @@ public class AlertService : IAlertService
                 }
             }
 
-            // INFO
             if (metric.ProductivityScore >= 80)
             {
                 var exists = await _context.Alerts.AnyAsync(a =>
