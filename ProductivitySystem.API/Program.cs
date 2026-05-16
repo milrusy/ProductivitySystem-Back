@@ -44,6 +44,10 @@ builder.Services.AddScoped<IAlertService,
 builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
+builder.Services.AddHttpClient<IGitHubService, GitHubService>();
+builder.Services.AddScoped<GitHubSyncService>();
+builder.Services.AddHostedService<GitHubSyncBackgroundService>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

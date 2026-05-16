@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Department> Departments => Set<Department>();
     public DbSet<ExternalTask> Tasks => Set<ExternalTask>();
+    public DbSet<ExternalSource> Sources => Set<ExternalSource>();
     public DbSet<TimeLog> TimeLogs => Set<TimeLog>();
     public DbSet<Metric> Metrics => Set<Metric>();
     public DbSet<Alert> Alerts => Set<Alert>();
