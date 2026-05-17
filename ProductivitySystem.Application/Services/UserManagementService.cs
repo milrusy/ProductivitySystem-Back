@@ -57,8 +57,7 @@ public class UserManagementService : IUserManagementService
             Name = dto.Name,
             Email = dto.Email,
 
-            // DEMO ONLY
-            PasswordHash = dto.Password,
+            PasswordHash = PasswordGenerator.Generate(),
 
             Role = dto.Role,
             DepartmentId = dto.DepartmentId

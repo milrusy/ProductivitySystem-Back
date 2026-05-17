@@ -39,39 +39,39 @@ public class GitHubSyncService
 
     public async Task SyncUsers()
     {
-        var teams = await _gitHubService.GetTeamsAsync();
+        //var teams = await _gitHubService.GetTeamsAsync();
 
-        foreach (var team in teams)
-        {
-            var department = await _context.Departments
-                .FirstOrDefaultAsync(d => d.ExternalId == team.Slug);
+        //foreach (var team in teams)
+        //{
+        //    var department = await _context.Departments
+        //        .FirstOrDefaultAsync(d => d.ExternalId == team.Slug);
 
-            var members = await _gitHubService.GetTeamMembersAsync(team.Slug);
+        //    var members = await _gitHubService.GetTeamMembersAsync(team.Slug);
 
-            foreach (var member in members)
-            {
-                var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Email == member.Login);
+        //    foreach (var member in members)
+        //    {
+        //        var user = await _context.Users
+        //            .FirstOrDefaultAsync(u => u.Email == member.Login);
 
-                if (user == null)
-                {
-                    user = new User
-                    {
-                        Name = member.Login,
-                        Email = member.Login,
-                        DepartmentId = department.Id,
-                        Role = "Employee"
-                    };
+        //        if (user == null)
+        //        {
+        //            user = new User
+        //            {
+        //                Name = member.Login,
+        //                Email = member.Login,
+        //                DepartmentId = department.Id,
+        //                Role = "Employee"
+        //            };
 
-                    _context.Users.Add(user);
-                }
-                else
-                {
-                    user.DepartmentId = department.Id;
-                }
-            }
-        }
+        //            _context.Users.Add(user);
+        //        }
+        //        else
+        //        {
+        //            user.DepartmentId = department.Id;
+        //        }
+        //    }
+        //}
 
-        await _context.SaveChangesAsync();
+        //await _context.SaveChangesAsync();
     }
 }

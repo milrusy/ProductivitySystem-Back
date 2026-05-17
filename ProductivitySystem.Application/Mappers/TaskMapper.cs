@@ -1,4 +1,5 @@
 ﻿using ProductivitySystem.Application.DTOs;
+using System.Linq;
 
 public class TaskMapper
 {
@@ -6,18 +7,31 @@ public class TaskMapper
     {
         return issues.Select(i => new TaskDto
         {
-            Id = i.Id.ToString(),
+            Id = i.Id,
             Title = i.Title,
-            Status = i.State == "closed" ? "Completed" : "InProgress",
+
+            Status = MapStatus(i.Status),
 
             Severity =
-                i.Labels.Any(l => l.Name == "critical") ? "Critical" :
-                i.Labels.Any(l => l.Name == "warning") ? "Warning" : "Info",
+                i.Labels.Contains("critical") ? "Critical" :
+                i.Labels.Contains("warning") ? "Warning" :
+                "Info",
 
-            EmployeeName = i.Assignee?.Login ?? "Unassigned",
+            EmployeeName = i.AssigneeLogin ?? "Unassigned",
             CreatedAt = i.CreatedAt,
             CompletedAt = i.ClosedAt,
             Source = "github"
         }).ToList();
+    }
+
+    private static string MapStatus(string? status)
+    {
+        return status switch
+        {
+            "Backlog" => "Backlog",
+            "In Progress" => "InProgress",
+            "Done" => "Completed",
+            _ => "Backlog"
+        };
     }
 }

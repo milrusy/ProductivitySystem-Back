@@ -52,8 +52,8 @@ public class AnalyticsService : IAnalyticsService
         return new TaskDistributionDto
         {
             Completed = tasks.Count(t => t.CompletedAt != null),
-            Overdue = tasks.Count(t => t.CompletedAt != null && t.Deadline < DateTime.UtcNow),
-            InProgress = tasks.Count(t => t.CompletedAt != null && t.Deadline >= DateTime.UtcNow)
+            Overdue = tasks.Count(t => t.CompletedAt == null && t.Deadline < DateTime.UtcNow),
+            InProgress = tasks.Count(t => t.CompletedAt == null && (t.Deadline >= DateTime.UtcNow || t.Deadline == null))
         };
     }
 }

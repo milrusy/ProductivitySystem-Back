@@ -30,8 +30,8 @@ public class MetricsService : IMetricsService
 
         var overdue = taskList.Count(t =>
             t.Deadline != null &&
-            t.CompletedAt != null &&
-            t.CompletedAt > t.Deadline);
+            t.Deadline < DateTime.Now &&
+            t.Status != "Completed");
 
         var completedTasks = taskList
             .Where(t => t.CompletedAt != null)
@@ -63,12 +63,24 @@ public class MetricsService : IMetricsService
             ProductivityScore = Math.Round(score, 2)
         };
     }
-    public async Task<List<TrendDto>> GetTrends(int? userId, int? departmentId)
+    public async Task<List<TrendDto>> GetTrends(int? userId, int? departmentId, DateTime? from, DateTime? to)
     {
         var query = _context.Tasks
             .Include(t => t.Assignee)
             .Where(t => t.CompletedAt != null)
             .AsQueryable();
+
+        if (from.HasValue)
+        {
+            query = query.Where(x =>
+                x.CreatedAt >= from.Value);
+        }
+
+        if (to.HasValue)
+        {
+            query = query.Where(x =>
+                x.CreatedAt <= to.Value);
+        }
 
         if (userId.HasValue)
         {

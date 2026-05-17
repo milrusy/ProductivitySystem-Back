@@ -12,9 +12,9 @@ public static class DbSeeder
 
         var departments = new List<Department>
         {
-            new Department { Name = "Development" },
-            new Department { Name = "Marketing" },
-            new Department { Name = "HR" }
+            new Department { Name = "Development", ExternalId = "GitHub"},
+            new Department { Name = "Marketing", ExternalId = "GitHub" },
+            new Department { Name = "HR", ExternalId = "GitHub" }
         };
 
         context.Departments.AddRange(departments);

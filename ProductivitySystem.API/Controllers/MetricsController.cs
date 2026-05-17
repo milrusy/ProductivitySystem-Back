@@ -29,9 +29,11 @@ public class MetricsController : ControllerBase
     [HttpGet("trends")]
     public async Task<IActionResult> GetTrends(
     [FromQuery] int? userId,
-    [FromQuery] int? departmentId)
+    [FromQuery] int? departmentId,
+    DateTime? startDate,
+    DateTime? endDate)
     {
-        var result = await _service.GetTrends(userId, departmentId);
+        var result = await _service.GetTrends(userId, departmentId, startDate, endDate);
         return Ok(result);
     }
 

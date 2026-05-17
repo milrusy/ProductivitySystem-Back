@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ProductivitySystem.Domain.Entities;
 using ProductivitySystem.Infrastructure.Data;
+using System.Text.Json;
 
 public class GitHubSyncBackgroundService : BackgroundService
 {
@@ -32,11 +33,9 @@ public class GitHubSyncBackgroundService : BackgroundService
 
                 _logger.LogInformation("GitHub sync started");
 
-                // 1. Sync structure
                 await syncService.SyncDepartments();
                 await syncService.SyncUsers();
 
-                // 2. Get source
                 var githubSource = await db.Sources
                     .FirstOrDefaultAsync(x => x.Name == "github", stoppingToken);
 
@@ -46,44 +45,41 @@ public class GitHubSyncBackgroundService : BackgroundService
                     continue;
                 }
 
-                // 3. Get issues
                 var issues = await gitHub.GetIssuesAsync();
 
                 _logger.LogInformation("Fetched {count} issues", issues.Count);
 
                 foreach (var issue in issues)
                 {
-                    var externalId = issue.Id.ToString();
+                    var externalId = issue.Id?.ToString();
+                    if (string.IsNullOrEmpty(externalId))
+                        continue;
 
-                    // IMPORTANT: correct table
                     var existing = await db.Tasks
                         .FirstOrDefaultAsync(x => x.ExternalId == externalId, stoppingToken);
 
-                    // SAFE assignee handling
-                    var login = issue.Assignee?.Login;
-
-                    var user = await GetOrCreateUserAsync(db, login);
+                    var user = await GetOrCreateUserAsync(db, issue.AssigneeLogin);
 
                     var mapped = new ExternalTask
                     {
                         ExternalId = externalId,
                         Title = issue.Title ?? "No title",
 
-                        Status = issue.State == "closed"
-                            ? "Completed"
-                            : "InProgress",
+                        Status = issue.Status ?? "",
 
                         Priority =
-                            issue.Labels?.Any(l => l.Name == "critical") == true ? "Critical" :
-                            issue.Labels?.Any(l => l.Name == "high") == true ? "High" :
-                            issue.Labels?.Any(l => l.Name == "low") == true ? "Low" :
-                            "Medium",
+                            issue.Labels?.Contains("critical") == true ? "Critical" :
+                            issue.Labels?.Contains("warning") == true ? "Warning" :
+                            issue.Labels?.Contains("high") == true ? "High" :
+                            "Info",
 
                         AssigneeId = user.Id,
                         SourceId = githubSource.Id,
 
                         CreatedAt = issue.CreatedAt,
                         CompletedAt = issue.ClosedAt,
+
+                        Deadline = issue.Deadline,
 
                         SyncedAt = DateTime.UtcNow
                     };
@@ -102,6 +98,7 @@ public class GitHubSyncBackgroundService : BackgroundService
                         existing.CreatedAt = mapped.CreatedAt;
                         existing.CompletedAt = mapped.CompletedAt;
                         existing.SyncedAt = DateTime.UtcNow;
+                        existing.Deadline = mapped.Deadline;
                     }
                 }
 
@@ -120,12 +117,11 @@ public class GitHubSyncBackgroundService : BackgroundService
 
     private async Task<User> GetOrCreateUserAsync(
         AppDbContext db,
-        string externalLogin)
+        string? externalLogin)
     {
         if (string.IsNullOrWhiteSpace(externalLogin))
         {
-            return await db.Users.FirstAsync(
-                u => u.Role == "Employee");
+            return await db.Users.FirstAsync(u => u.Role == "Employee");
         }
 
         var user = await db.Users
@@ -142,7 +138,7 @@ public class GitHubSyncBackgroundService : BackgroundService
             defaultDepartment = new Department
             {
                 Name = "GitHub",
-                ExternalId = "GitHub"
+                ExternalId = "github"
             };
 
             db.Departments.Add(defaultDepartment);
@@ -156,7 +152,10 @@ public class GitHubSyncBackgroundService : BackgroundService
             ExternalId = externalLogin,
             IsExternal = true,
             Role = "Employee",
-            PasswordHash = "external", // IMPORTANT FIX
+
+            // IMPORTANT: avoid NULL FK issues
+            PasswordHash = "external",
+
             DepartmentId = defaultDepartment.Id
         };
 
