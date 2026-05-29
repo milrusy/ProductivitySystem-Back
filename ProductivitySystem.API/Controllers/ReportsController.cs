@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProductivitySystem.Application.DTOs;
 using ProductivitySystem.Application.Interfaces;
 
 namespace ProductivitySystem.API.Controllers;
@@ -28,10 +29,10 @@ public class ReportsController : ControllerBase
         );
     }
 
-    [HttpGet("metrics/pdf")]
-    public async Task<IActionResult> ExportMetricsPdf()
+    [HttpPost("metrics/pdf")]
+    public async Task<IActionResult> ExportMetricsPdf(ExportPdfDto dto)
     {
-        var file = await _service.GenerateMetricsPdf();
+        var file = await _service.GenerateMetricsPdf(dto);
 
         return File(
             file,

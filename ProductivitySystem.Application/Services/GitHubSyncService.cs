@@ -1,6 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProductivitySystem.Application.Interfaces;
 using ProductivitySystem.Domain.Entities;
 using ProductivitySystem.Infrastructure.Data;
+
+namespace ProductivitySystem.Application.Services;
 
 public class GitHubSyncService
 {

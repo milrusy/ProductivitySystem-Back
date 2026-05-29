@@ -1,52 +1,31 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 using ProductivitySystem.Application.DTOs;
 using ProductivitySystem.Application.Interfaces;
-using ProductivitySystem.Domain.Entities;
-using ProductivitySystem.Infrastructure.Data;
 
 namespace ProductivitySystem.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/auth")]
 public class AuthController : ControllerBase
 {
-    private readonly AppDbContext _context;
-    private readonly IJwtService _jwtService;
+    private readonly IAuthService _authService;
 
-    public AuthController(
-        AppDbContext context,
-        IJwtService jwtService)
+    public AuthController(IAuthService authService)
     {
-        _context = context;
-        _jwtService = jwtService;
+        _authService = authService;
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequestDto dto)
     {
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Email == dto.Email);
-
-        if (user == null)
+        try
         {
-            return Unauthorized("Invalid credentials");
+            var result = await _authService.LoginAsync(dto);
+            return Ok(result);
         }
-
-        if (user.PasswordHash != dto.Password)
+        catch (Exception ex)
         {
-            return Unauthorized("Invalid credentials");
+            return Unauthorized(ex.Message);
         }
-
-        var token = _jwtService.GenerateToken(user);
-
-        return Ok(new LoginResponseDto
-        {
-            Token = token,
-            Name = user.Name,
-            Role = user.Role,
-            UserId = user.Id
-        });
     }
 }

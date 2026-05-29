@@ -1,4 +1,6 @@
-﻿public class TopEmployeeDto
+﻿namespace ProductivitySystem.Application.DTOs; 
+
+public class TopEmployeeDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;

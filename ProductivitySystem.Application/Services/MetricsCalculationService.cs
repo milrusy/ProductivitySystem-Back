@@ -5,10 +5,12 @@ using ProductivitySystem.Infrastructure.Data;
 
 namespace ProductivitySystem.Application.Services;
 
-public class MetricsCalculationService
-    : IMetricsCalculationService
+public class MetricsCalculationService : IMetricsCalculationService
 {
     private readonly AppDbContext _context;
+
+    private const double MinOverdueDays = 0.0;
+    private const double MaxOverdueDays = 14.0;
 
     public MetricsCalculationService(AppDbContext context)
     {
@@ -18,71 +20,72 @@ public class MetricsCalculationService
     public async Task CalculateMetrics()
     {
         var users = await _context.Users.ToListAsync();
+        var userIds = users.Select(u => u.Id).ToList();
+
+        var allTasks = await _context.Tasks
+            .Where(t => userIds.Contains(t.AssigneeId))
+            .ToListAsync();
+
+        var existingMetrics = await _context.Metrics.ToListAsync();
 
         foreach (var user in users)
         {
-            var tasks = await _context.Tasks
-                .Where(t => t.AssigneeId == user.Id)
-                .ToListAsync();
+            var userTasks = allTasks.Where(t => t.AssigneeId == user.Id).ToList();
 
-            var completedTasks = tasks
-                .Count(t => t.Status == "Done");
+            var completedTasksCount = userTasks.Count(t => t.Status == "Done");
 
-            var overdueTasks = tasks.Count(t =>
+            var overdueTasksCount = userTasks.Count(t =>
                 t.Deadline < DateTime.UtcNow &&
                 t.Status != "Done");
 
-            var completed = tasks
-                .Where(t =>
-                    t.CompletedAt != null)
-                .ToList();
-
+            var completedTasksList = userTasks.Where(t => t.CompletedAt != null).ToList();
             double avgCompletionTime = 0;
-
-            if (completed.Any())
+            if (completedTasksList.Any())
             {
-                avgCompletionTime =
-                    completed.Average(t =>
-                        (t.CompletedAt!.Value - t.CreatedAt)
-                        .TotalHours);
+                avgCompletionTime = completedTasksList.Average(t =>
+                    (t.CompletedAt!.Value - t.CreatedAt).TotalHours);
             }
 
-            var productivityScore =
-                completedTasks * 2 -
-                overdueTasks * 3;
+            double totalOverdueDays = userTasks
+                .Where(t => t.Deadline < DateTime.UtcNow && t.Status != "Done" && t.Deadline.HasValue)
+                .Sum(t => (DateTime.UtcNow - t.Deadline!.Value).TotalDays);
 
-            var existingMetric =
-                await _context.Metrics
-                .FirstOrDefaultAsync(m =>
-                    m.UserId == user.Id);
+            double productivityScore = 100.0;
 
-            if (existingMetric == null)
+            if (totalOverdueDays > MinOverdueDays)
             {
-                existingMetric = new Metric
+                if (totalOverdueDays >= MaxOverdueDays)
                 {
-                    UserId = user.Id
-                };
-
-                _context.Metrics.Add(existingMetric);
+                    productivityScore = 0.0;
+                }
+                else
+                {
+                    double penaltyFactor = (totalOverdueDays - MinOverdueDays) / (MaxOverdueDays - MinOverdueDays);
+                    productivityScore = (1.0 - penaltyFactor) * 100.0;
+                }
             }
 
-            existingMetric.PeriodStart =
-                DateTime.UtcNow.AddDays(-30);
+            if (completedTasksCount == 0 && overdueTasksCount > 0)
+            {
+                productivityScore *= 0.5;
+            }
 
-            existingMetric.PeriodEnd =
-                DateTime.UtcNow;
+            productivityScore = Math.Round(productivityScore, 2);
 
-            existingMetric.CompletedTasks =
-                completedTasks;
+            var metric = existingMetrics.FirstOrDefault(m => m.UserId == user.Id);
 
-            existingMetric.OverdueTasks =
-                overdueTasks;
+            if (metric == null)
+            {
+                metric = new Metric { UserId = user.Id };
+                _context.Metrics.Add(metric);
+            }
 
-            existingMetric.AvgCompletionTime =
-                avgCompletionTime;
-
-            existingMetric.ProductivityScore =
-                productivityScore;
+            metric.PeriodStart = DateTime.UtcNow.AddDays(-30);
+            metric.PeriodEnd = DateTime.UtcNow;
+            metric.CompletedTasks = completedTasksCount;
+            metric.OverdueTasks = overdueTasksCount;
+            metric.AvgCompletionTime = Math.Round(avgCompletionTime, 2);
+            metric.ProductivityScore = productivityScore;
         }
 
         await _context.SaveChangesAsync();

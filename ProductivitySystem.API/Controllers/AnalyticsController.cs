@@ -1,4 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ProductivitySystem.Application.Interfaces;
+
+namespace ProductivitySystem.API.Controllers;
 
 [ApiController]
 [Route("api/analytics")]

@@ -1,4 +1,6 @@
-﻿public class GithubIssueDto
+﻿namespace ProductivitySystem.Application.DTOs; 
+
+public class GithubIssueDto
 {
     public string Id { get; set; }
     public int Number { get; set; }

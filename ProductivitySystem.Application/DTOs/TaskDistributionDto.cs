@@ -1,4 +1,6 @@
-﻿public class TaskDistributionDto
+﻿namespace ProductivitySystem.Application.DTOs; 
+
+public class TaskDistributionDto
 {
     public int Completed { get; set; }
     public int Overdue { get; set; }

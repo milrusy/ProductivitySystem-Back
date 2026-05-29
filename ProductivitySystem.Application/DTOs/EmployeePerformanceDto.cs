@@ -1,4 +1,6 @@
-﻿public class EmployeePerformanceDto
+﻿namespace ProductivitySystem.Application.DTOs; 
+
+public class EmployeePerformanceDto
 {
     public int UserId { get; set; }
     public string Name { get; set; }

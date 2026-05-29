@@ -1,15 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using ProductivitySystem.Application.DTOs;
 using ProductivitySystem.Application.Interfaces;
 using ProductivitySystem.Domain.Entities;
 using ProductivitySystem.Infrastructure.Data;
-using System;
 
 namespace ProductivitySystem.Application.Services;
 
 public class UserManagementService : IUserManagementService
 {
     private readonly AppDbContext _context;
+    private readonly PasswordHasher<User> _hasher = new();
 
     public UserManagementService(AppDbContext context)
     {
@@ -41,51 +42,50 @@ public class UserManagementService : IUserManagementService
             .FirstOrDefaultAsync();
     }
 
-
-    public async Task CreateUser(CreateUserDto dto)
+    public async Task<string> CreateUser(CreateUserDto dto)
     {
         var exists = await _context.Users
-            .AnyAsync(u => u.Email == dto.Email);
+            .AnyAsync(x => x.Email == dto.Email);
 
         if (exists)
-        {
-            throw new Exception("User already exists");
-        }
+            throw new Exception("User with this email already exists");
+
+        var tempPassword = GeneratePassword();
 
         var user = new User
         {
             Name = dto.Name,
             Email = dto.Email,
-
-            PasswordHash = PasswordGenerator.Generate(),
-
-            Role = dto.Role,
-            DepartmentId = dto.DepartmentId
+            DepartmentId = dto.DepartmentId,
+            Role = dto.Role
         };
 
-        _context.Users.Add(user);
+        user.PasswordHash = _hasher.HashPassword(user, tempPassword);
 
+        _context.Users.Add(user);
         await _context.SaveChangesAsync();
+
+        return tempPassword;
     }
 
-    public async Task ChangePassword(
-        int currentUserId,
-        ChangePasswordDto dto)
+    public async Task ChangePassword(int currentUserId, ChangePasswordDto dto)
     {
         var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Id == currentUserId);
 
         if (user == null)
-        {
             throw new Exception("User not found");
-        }
 
-        if (user.PasswordHash != dto.OldPassword)
-        {
+        var verify = _hasher.VerifyHashedPassword(
+            user,
+            user.PasswordHash,
+            dto.OldPassword
+        );
+
+        if (verify == PasswordVerificationResult.Failed)
             throw new Exception("Old password incorrect");
-        }
 
-        user.PasswordHash = dto.NewPassword;
+        user.PasswordHash = _hasher.HashPassword(user, dto.NewPassword);
 
         await _context.SaveChangesAsync();
     }
@@ -96,12 +96,15 @@ public class UserManagementService : IUserManagementService
             .FirstOrDefaultAsync(u => u.Id == dto.UserId);
 
         if (user == null)
-        {
             throw new Exception("User not found");
-        }
 
-        user.PasswordHash = dto.NewPassword;
+        user.PasswordHash = _hasher.HashPassword(user, dto.NewPassword);
 
         await _context.SaveChangesAsync();
+    }
+
+    private string GeneratePassword()
+    {
+        return Guid.NewGuid().ToString("N")[..10];
     }
 }

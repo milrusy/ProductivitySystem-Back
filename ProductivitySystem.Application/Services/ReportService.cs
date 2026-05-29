@@ -1,9 +1,9 @@
 ﻿using System.Text;
 using Microsoft.EntityFrameworkCore;
+using ProductivitySystem.Application.DTOs;
 using ProductivitySystem.Application.Interfaces;
 using ProductivitySystem.Infrastructure.Data;
 using QuestPDF.Fluent;
-using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
 namespace ProductivitySystem.Application.Services;
@@ -43,7 +43,7 @@ public class ReportService : IReportService
         return Encoding.UTF8.GetBytes(sb.ToString());
     }
 
-    public async Task<byte[]> GenerateMetricsPdf()
+    public async Task<byte[]> GenerateMetricsPdf(ExportPdfDto dto)
     {
         var metrics = await _context.Metrics
             .Include(m => m.User)
@@ -51,6 +51,12 @@ public class ReportService : IReportService
 
         QuestPDF.Settings.License =
             LicenseType.Community;
+
+        var base64 = dto.ChartImage
+            .Split(",")[1];
+
+        var imageBytes =
+            Convert.FromBase64String(base64);
 
         var document = Document.Create(container =>
         {
@@ -66,6 +72,16 @@ public class ReportService : IReportService
                 page.Content()
                     .Column(column =>
                     {
+                        column.Item()
+                            .PaddingBottom(20)
+                            .Image(imageBytes)
+                            .FitWidth();
+
+                        column.Item()
+                            .Text("Productivity Metrics")
+                            .FontSize(18)
+                            .Bold();
+
                         foreach (var metric in metrics)
                         {
                             column.Item()

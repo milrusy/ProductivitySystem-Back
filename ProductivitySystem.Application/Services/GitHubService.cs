@@ -1,7 +1,11 @@
 ﻿using Microsoft.Extensions.Configuration;
+using ProductivitySystem.Application.DTOs;
+using ProductivitySystem.Application.Interfaces;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+
+namespace ProductivitySystem.Application.Services;
 
 public class GitHubService : IGitHubService
 {
@@ -19,9 +23,6 @@ public class GitHubService : IGitHubService
             new AuthenticationHeaderValue("Bearer", _config["GitHub:Token"]);
     }
 
-    // =========================
-    // GRAPHQL ISSUES (PROJECT)
-    // =========================
     public async Task<List<GithubIssueDto>> GetIssuesAsync()
     {
         var query = """
@@ -104,9 +105,6 @@ public class GitHubService : IGitHubService
             if (content.ValueKind == JsonValueKind.Null)
                 continue;
 
-            // -------------------------
-            // LABELS SAFE
-            // -------------------------
             var labels = new List<string>();
 
             if (content.TryGetProperty("labels", out var labelsObj))
@@ -119,25 +117,26 @@ public class GitHubService : IGitHubService
                 }
             }
 
-            // -------------------------
-            // ASSIGNEE SAFE
-            // -------------------------
             string? assignee = null;
 
             if (content.TryGetProperty("assignees", out var assigneesObj))
             {
-                assignee = assigneesObj
-                    .GetProperty("nodes")
-                    .EnumerateArray()
-                    .FirstOrDefault()
-                    .TryGetProperty("login", out var login)
-                        ? login.GetString()
-                        : null;
+                try
+                {
+                    assignee = assigneesObj
+                        .GetProperty("nodes")
+                        .EnumerateArray()
+                        .FirstOrDefault()
+                        .TryGetProperty("login", out var login)
+                            ? login.GetString()
+                            : null;
+                }
+                catch
+                {
+                    continue;
+                }
             }
 
-            // -------------------------
-            // STATUS SAFE (Project field)
-            // -------------------------
             string? status = null;
 
             if (node.TryGetProperty("fieldValues", out var fv))
@@ -182,9 +181,6 @@ public class GitHubService : IGitHubService
                 }
             }
 
-            // -------------------------
-            // DATES SAFE
-            // -------------------------
             DateTime? createdAt = null;
             DateTime? closedAt = null;
 
@@ -202,9 +198,6 @@ public class GitHubService : IGitHubService
                 closedAt = closed;
             }
 
-            // -------------------------
-            // BUILD DTO
-            // -------------------------
             result.Add(new GithubIssueDto
             {
                 Id = content.GetProperty("id").GetString(),
@@ -224,9 +217,6 @@ public class GitHubService : IGitHubService
         return result;
     }
 
-    // =========================
-    // REST TEAMS
-    // =========================
     public async Task<List<GitHubTeamDto>> GetTeamsAsync()
     {
         var org = "Productivity-System";
@@ -251,9 +241,6 @@ public class GitHubService : IGitHubService
         return result;
     }
 
-    // =========================
-    // REST TEAM MEMBERS
-    // =========================
     public async Task<List<GitHubUserDto>> GetTeamMembersAsync(string teamSlug)
     {
         var org = "Productivity-System";

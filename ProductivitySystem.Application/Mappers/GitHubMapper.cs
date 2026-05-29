@@ -1,4 +1,7 @@
 ﻿using GraphQL.Common.Response;
+using ProductivitySystem.Application.DTOs;
+
+namespace ProductivitySystem.Application.Mappers;
 
 public class GitHubMapper
 {

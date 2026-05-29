@@ -88,23 +88,6 @@ public static class DbSeeder
         context.Tasks.AddRange(tasks);
         context.SaveChanges();
 
-        var logs = new List<TimeLog>();
-
-        foreach (var task in tasks)
-        {
-            if (random.NextDouble() > 0.3)
-            {
-                logs.Add(new TimeLog
-                {
-                    TaskId = task.Id,
-                    UserId = task.AssigneeId,
-                    TimeSpent = random.Next(1, 12),
-                    LogDate = task.CreatedAt.AddDays(random.Next(1, 5))
-                });
-            }
-        }
-
-        context.TimeLogs.AddRange(logs);
         context.SaveChanges();
     }
 }

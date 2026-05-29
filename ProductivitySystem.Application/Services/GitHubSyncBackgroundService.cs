@@ -2,9 +2,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ProductivitySystem.Application.Interfaces;
 using ProductivitySystem.Domain.Entities;
 using ProductivitySystem.Infrastructure.Data;
-using System.Text.Json;
+
+namespace ProductivitySystem.Application.Services;
 
 public class GitHubSyncBackgroundService : BackgroundService
 {
@@ -153,7 +155,6 @@ public class GitHubSyncBackgroundService : BackgroundService
             IsExternal = true,
             Role = "Employee",
 
-            // IMPORTANT: avoid NULL FK issues
             PasswordHash = "external",
 
             DepartmentId = defaultDepartment.Id

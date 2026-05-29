@@ -9,13 +9,13 @@ public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    public DbSet<User> Users => Set<User>();
-    public DbSet<Department> Departments => Set<Department>();
-    public DbSet<ExternalTask> Tasks => Set<ExternalTask>();
-    public DbSet<ExternalSource> Sources => Set<ExternalSource>();
-    public DbSet<TimeLog> TimeLogs => Set<TimeLog>();
-    public DbSet<Metric> Metrics => Set<Metric>();
-    public DbSet<Alert> Alerts => Set<Alert>();
+    public virtual DbSet<User> Users => Set<User>();
+    public virtual DbSet<Department> Departments => Set<Department>();
+    public virtual DbSet<ExternalTask> Tasks => Set<ExternalTask>();
+    public virtual DbSet<ExternalSource> Sources => Set<ExternalSource>();
+    public virtual DbSet<Metric> Metrics => Set<Metric>();
+    public virtual DbSet<Alert> Alerts => Set<Alert>();
+    public virtual DbSet<ExternalUserMapping> ExternalUserMappings => Set<ExternalUserMapping>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -28,17 +28,5 @@ public class AppDbContext : DbContext
             .HasOne(t => t.Assignee)
             .WithMany(u => u.Tasks)
             .HasForeignKey(t => t.AssigneeId);
-
-        modelBuilder.Entity<TimeLog>()
-            .HasOne(t => t.User)
-            .WithMany()
-            .HasForeignKey(t => t.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<TimeLog>()
-            .HasOne(t => t.Task)
-            .WithMany(t => t.TimeLogs)
-            .HasForeignKey(t => t.TaskId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }

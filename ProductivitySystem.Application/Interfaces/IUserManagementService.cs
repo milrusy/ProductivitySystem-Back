@@ -7,7 +7,7 @@ public interface IUserManagementService
     Task<List<UserDto>> GetAllAsync();
     Task<UserDto?> GetByIdAsync(int id);
 
-    Task CreateUser(CreateUserDto dto);
+    Task<string> CreateUser(CreateUserDto dto);
 
     Task ChangePassword(
         int currentUserId,

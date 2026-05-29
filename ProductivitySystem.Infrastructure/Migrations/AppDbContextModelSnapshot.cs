@@ -22,6 +22,30 @@ namespace ProductivitySystem.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("ExternalUserMapping", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("GitHubLogin")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TrelloMemberId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ExternalUserMappings");
+                });
+
             modelBuilder.Entity("ProductivitySystem.Domain.Entities.Alert", b =>
                 {
                     b.Property<int>("Id")
@@ -186,35 +210,6 @@ namespace ProductivitySystem.Infrastructure.Migrations
                     b.ToTable("Metrics");
                 });
 
-            modelBuilder.Entity("ProductivitySystem.Domain.Entities.TimeLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("LogDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("TaskId")
-                        .HasColumnType("int");
-
-                    b.Property<double>("TimeSpent")
-                        .HasColumnType("float");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TaskId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("TimeLogs");
-                });
-
             modelBuilder.Entity("ProductivitySystem.Domain.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -252,6 +247,17 @@ namespace ProductivitySystem.Infrastructure.Migrations
                     b.HasIndex("DepartmentId");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ExternalUserMapping", b =>
+                {
+                    b.HasOne("ProductivitySystem.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ProductivitySystem.Domain.Entities.Alert", b =>
@@ -295,25 +301,6 @@ namespace ProductivitySystem.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ProductivitySystem.Domain.Entities.TimeLog", b =>
-                {
-                    b.HasOne("ProductivitySystem.Domain.Entities.ExternalTask", "Task")
-                        .WithMany("TimeLogs")
-                        .HasForeignKey("TaskId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ProductivitySystem.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Task");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("ProductivitySystem.Domain.Entities.User", b =>
                 {
                     b.HasOne("ProductivitySystem.Domain.Entities.Department", "Department")
@@ -328,11 +315,6 @@ namespace ProductivitySystem.Infrastructure.Migrations
             modelBuilder.Entity("ProductivitySystem.Domain.Entities.Department", b =>
                 {
                     b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("ProductivitySystem.Domain.Entities.ExternalTask", b =>
-                {
-                    b.Navigation("TimeLogs");
                 });
 
             modelBuilder.Entity("ProductivitySystem.Domain.Entities.User", b =>

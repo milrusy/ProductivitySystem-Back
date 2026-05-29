@@ -1,8 +1,10 @@
-﻿namespace ProductivitySystem.Application.Interfaces;
+﻿using ProductivitySystem.Application.DTOs;
+
+namespace ProductivitySystem.Application.Interfaces;
 
 public interface IReportService
 {
     Task<byte[]> GenerateMetricsCsv();
 
-    Task<byte[]> GenerateMetricsPdf();
+    Task<byte[]> GenerateMetricsPdf(ExportPdfDto dto);
 }

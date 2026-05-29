@@ -1,5 +1,6 @@
 ﻿using ProductivitySystem.Application.DTOs;
-using System.Linq;
+
+namespace ProductivitySystem.Application.Mappers;
 
 public class TaskMapper
 {

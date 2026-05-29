@@ -19,7 +19,5 @@ public class ExternalTask
     public DateTime? CompletedAt { get; set; }
 
     public double? EstimatedTime { get; set; }
-
-    public ICollection<TimeLog> TimeLogs { get; set; }
     public DateTime SyncedAt { get; set; }
 }

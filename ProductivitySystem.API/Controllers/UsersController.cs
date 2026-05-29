@@ -44,9 +44,19 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> CreateUser(
         CreateUserDto dto)
     {
-        await _service.CreateUser(dto);
+        try
+        {
+            var tempPassword = await _service.CreateUser(dto);
 
-        return Ok();
+            return Ok(new
+            {
+                temporaryPassword = tempPassword
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet("{id}/analytics")]

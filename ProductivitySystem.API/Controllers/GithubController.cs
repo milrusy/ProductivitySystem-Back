@@ -1,12 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ProductivitySystem.Application.Interfaces;
+using ProductivitySystem.Application.Mappers;
+
+namespace ProductivitySystem.API.Controllers;
 
 [ApiController]
 [Route("api/github")]
 public class GitHubController : ControllerBase
 {
-    private readonly GitHubService _service;
+    private readonly IGitHubService _service;
 
-    public GitHubController(GitHubService service)
+    public GitHubController(IGitHubService service)
     {
         _service = service;
     }

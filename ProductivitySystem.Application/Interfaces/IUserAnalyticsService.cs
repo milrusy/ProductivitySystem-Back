@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using ProductivitySystem.Application.DTOs;
+﻿using ProductivitySystem.Application.DTOs;
 
 namespace ProductivitySystem.Application.Interfaces;
 
