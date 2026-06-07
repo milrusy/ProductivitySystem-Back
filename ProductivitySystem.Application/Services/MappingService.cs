@@ -23,8 +23,7 @@ public class MappingService : IMappingService
                 x.Id,
                 x.UserId,
                 UserName = x.User.Name,
-                x.GitHubLogin,
-                x.TrelloMemberId
+                x.GitHubLogin
             })
             .ToListAsync<object>();
     }
@@ -40,8 +39,7 @@ public class MappingService : IMappingService
         {
             mapping.Id,
             mapping.UserId,
-            mapping.GitHubLogin,
-            mapping.TrelloMemberId
+            mapping.GitHubLogin
         };
     }
 
@@ -60,14 +58,12 @@ public class MappingService : IMappingService
             _context.ExternalUserMappings.Add(new ExternalUserMapping
             {
                 UserId = dto.UserId,
-                GitHubLogin = dto.GitHubLogin,
-                TrelloMemberId = dto.TrelloMemberId
+                GitHubLogin = dto.GitHubLogin
             });
         }
         else
         {
             existing.GitHubLogin = dto.GitHubLogin;
-            existing.TrelloMemberId = dto.TrelloMemberId;
         }
 
         await _context.SaveChangesAsync();

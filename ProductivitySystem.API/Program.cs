@@ -48,14 +48,6 @@ builder.Services.AddScoped<IMappingService, MappingService>();
 
 builder.Services.AddHttpClient<IGitHubService, GitHubService>();
 
-//builder.Services.AddScoped<ITrelloSyncService, TrelloSyncService>();
-
-//builder.Services.AddHttpClient<ITrelloService, TrelloService>(client =>
-//{
-//    client.BaseAddress =
-//        new Uri("https://api.trello.com/1/");
-//});
-//builder.Services.AddHostedService<TrelloSyncBackgroundService>();
 builder.Services.AddScoped<GitHubSyncService>();
 builder.Services.AddHostedService<GitHubSyncBackgroundService>();
 
